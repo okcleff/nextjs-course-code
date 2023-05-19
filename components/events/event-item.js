@@ -3,7 +3,7 @@ import DateIcon from "../icons/date-icon";
 import AddressIcon from "../icons/address-icon";
 import ArrowRightIcon from "../icons/arrow-right-icon";
 
-import classes from "./EventItem.module.css";
+import classes from "./event-item.module.css";
 
 const EventItem = ({ event }) => {
   const { title, image, date, location, id } = event;
