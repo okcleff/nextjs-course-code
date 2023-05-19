@@ -1,7 +1,6 @@
-import React from "react";
-import Link from "next/link";
+import Link from 'next/link';
 
-import classes from "./main-header.module.css";
+import classes from './main-header.module.css';
 
 const MainHeader = () => {
   return (

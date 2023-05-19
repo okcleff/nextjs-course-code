@@ -1,10 +1,11 @@
-import React from "react";
-import { useRouter } from "next/router";
+import React from 'react';
+import { useRouter } from 'next/router';
 
-import { getEventById } from "../../dummy-data";
-import EventSummmary from "../../components/event-detail/event-summary";
-import EventLogistics from "../../components/event-detail/event-logistics";
-import EventContent from "../../components/event-detail/event-content";
+import { getEventById } from '../../dummy-data';
+import EventSummmary from '../../components/event-detail/event-summary';
+import EventLogistics from '../../components/event-detail/event-logistics';
+import EventContent from '../../components/event-detail/event-content';
+import ErrorAlert from '../../components/ui/error-alert';
 
 const EventDetailPage = () => {
   const router = useRouter();
@@ -12,13 +13,15 @@ const EventDetailPage = () => {
   const eventId = router.query.eventId;
   const event = getEventById(eventId);
 
-  console.log(event);
-
   if (!event) {
-    return <p>No Event found!</p>;
+    return (
+      <ErrorAlert>
+        <p>No Event found!</p>
+      </ErrorAlert>
+    );
   }
 
-  const { id, title, description, location, date, image } = event;
+  const { title, description, location, date, image } = event;
 
   return (
     <React.Fragment>
