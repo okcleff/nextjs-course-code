@@ -1,4 +1,5 @@
 import React from 'react';
+import Head from 'next/head';
 
 import { getEventById, getFeaturedEvents } from '../../helpers/api-util';
 import EventSummmary from '../../components/event-detail/event-summary';
@@ -18,6 +19,11 @@ const EventDetailPage = ({ selectedEvent }) => {
 
   return (
     <React.Fragment>
+      <Head>
+        <title>{title}</title>
+        <meta name="description" content={description} />
+      </Head>
+
       <EventSummmary title={title} />
 
       <EventLogistics
