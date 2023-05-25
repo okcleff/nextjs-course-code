@@ -1,16 +1,20 @@
 import { MongoClient } from 'mongodb';
 
+import {
+  connectDatabase,
+  insertDocument,
+  getAllDocuments,
+} from '../../../helpers/db-util';
+
 export default async function handler(req, res) {
   const eventId = req.query.eventId;
 
   let client;
 
   try {
-    client = await MongoClient.connect(
-      `mongodb+srv://okcleff:${process.env.NEXT_PUBLIC_MONGODB_PASSWORD}@cluster0.q2xw64j.mongodb.net/events?retryWrites=true&w=majority`,
-    );
+    client = await connectDatabase();
   } catch (error) {
-    res.status(500).json({ message: 'Could not connect to database.' });
+    res.status(500).json({ message: 'Connecting to the database failed!' });
     return;
   }
 
@@ -36,42 +40,30 @@ export default async function handler(req, res) {
       eventId,
     };
 
-    const db = client.db('events');
+    let result;
 
     try {
-      const result = await db.collection('comments').insertOne(newComment);
-      newComment.id = result.insertedId;
+      result = await insertDocument(client, 'comments', newComment);
+      newComment._id = result.insertedId;
+      res.status(201).json({ message: 'Added comment.', comment: newComment });
     } catch (error) {
-      client.close();
-      res.status(500).json({ message: 'Storing comment failed!' });
-      return;
+      res.status(500).json({ message: 'Inserting comment failed!' });
     }
-
-    client.close();
-
-    res.status(201).json({
-      message: 'Added comment.',
-      comment: newComment,
-    });
   }
 
   if (req.method === 'GET') {
-    const db = client.db();
-
-    let documents;
-
     try {
-      documents = await db
-        .collection('comments')
-        .find({ eventId: eventId })
-        .sort({ _id: -1 })
-        .toArray();
+      const documents = await getAllDocuments(
+        client,
+        'comments',
+        { _id: -1 },
+        { eventId: eventId },
+      );
+      res.status(200).json({ comments: documents });
     } catch (error) {
-      client.close();
-      res.status(500).json({ message: 'Fetching comments failed!' });
-      return;
+      res.status(500).json({ message: 'Getting comments failed.' });
     }
-
-    res.status(200).json({ comments: documents });
   }
+
+  client.close();
 }
