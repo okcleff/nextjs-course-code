@@ -1,13 +1,17 @@
-import React from 'react';
+import { Fragment } from 'react';
 import Head from 'next/head';
 
 import { getEventById, getFeaturedEvents } from '../../helpers/api-util';
-import EventSummmary from '../../components/event-detail/event-summary';
+import EventSummary from '../../components/event-detail/event-summary';
 import EventLogistics from '../../components/event-detail/event-logistics';
 import EventContent from '../../components/event-detail/event-content';
+import ErrorAlert from '../../components/ui/error-alert';
+import Comments from '../../components/input/comments';
 
-const EventDetailPage = ({ selectedEvent }) => {
-  if (!selectedEvent) {
+function EventDetailPage(props) {
+  const event = props.selectedEvent;
+
+  if (!event) {
     return (
       <div className="center">
         <p>Loading...</p>
@@ -15,51 +19,51 @@ const EventDetailPage = ({ selectedEvent }) => {
     );
   }
 
-  const { title, description, location, date, image } = selectedEvent;
-
   return (
-    <React.Fragment>
+    <Fragment>
       <Head>
-        <title>{title}</title>
-        <meta name="description" content={description} />
+        <title>{event.title}</title>
+        <meta
+          name='description'
+          content={event.description}
+        />
       </Head>
-
-      <EventSummmary title={title} />
-
+      <EventSummary title={event.title} />
       <EventLogistics
-        date={date}
-        address={location}
-        image={image}
-        imageAlt={title}
+        date={event.date}
+        address={event.location}
+        image={event.image}
+        imageAlt={event.title}
       />
-
       <EventContent>
-        <p>{description}</p>
+        <p>{event.description}</p>
       </EventContent>
-    </React.Fragment>
+      <Comments eventId={event.id} />
+    </Fragment>
   );
-};
+}
 
 export async function getStaticProps(context) {
   const eventId = context.params.eventId;
+
   const event = await getEventById(eventId);
 
   return {
     props: {
-      selectedEvent: event,
+      selectedEvent: event
     },
-    revalidate: 30,
+    revalidate: 30
   };
 }
 
 export async function getStaticPaths() {
   const events = await getFeaturedEvents();
 
-  const paths = events.map((event) => ({ params: { eventId: event.id } }));
+  const paths = events.map(event => ({ params: { eventId: event.id } }));
 
   return {
     paths: paths,
-    fallback: 'blocking',
+    fallback: 'blocking'
   };
 }
 
