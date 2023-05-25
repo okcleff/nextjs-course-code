@@ -1,5 +1,18 @@
-export default function handler(req, res) {
+import { MongoClient } from 'mongodb';
+
+export default async function handler(req, res) {
   const eventId = req.query.eventId;
+
+  let client;
+
+  try {
+    client = await MongoClient.connect(
+      `mongodb+srv://okcleff:${process.env.NEXT_PUBLIC_MONGODB_PASSWORD}@cluster0.q2xw64j.mongodb.net/events?retryWrites=true&w=majority`,
+    );
+  } catch (error) {
+    res.status(500).json({ message: 'Could not connect to database.' });
+    return;
+  }
 
   if (req.method === 'POST') {
     const { email, name, text } = req.body;
@@ -17,13 +30,24 @@ export default function handler(req, res) {
     }
 
     const newComment = {
-      id: new Date().toISOString(),
       email,
       name,
       text,
+      eventId,
     };
 
-    console.log(newComment);
+    const db = client.db('events');
+
+    try {
+      const result = await db.collection('comments').insertOne(newComment);
+      newComment.id = result.insertedId;
+    } catch (error) {
+      client.close();
+      res.status(500).json({ message: 'Storing comment failed!' });
+      return;
+    }
+
+    client.close();
 
     res.status(201).json({
       message: 'Added comment.',
@@ -32,11 +56,22 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    const dummyList = [
-      { id: 'c1', name: 'Max', text: 'comment1' },
-      { id: 'c2', name: 'Max2', text: 'comment2' },
-    ];
+    const db = client.db();
 
-    res.status(200).json({ comments: dummyList });
+    let documents;
+
+    try {
+      documents = await db
+        .collection('comments')
+        .find({ eventId: eventId })
+        .sort({ _id: -1 })
+        .toArray();
+    } catch (error) {
+      client.close();
+      res.status(500).json({ message: 'Fetching comments failed!' });
+      return;
+    }
+
+    res.status(200).json({ comments: documents });
   }
 }

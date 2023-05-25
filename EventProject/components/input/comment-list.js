@@ -6,10 +6,10 @@ function CommentList(props) {
   return (
     <ul className={classes.comments}>
       {comments.map((comment) => {
-        const { id, name, text } = comment;
+        const { _id, name, text } = comment;
 
         return (
-          <li key={id}>
+          <li key={_id}>
             <p>{text}</p>
             <div>
               By <address>{name}</address>
